@@ -2,13 +2,19 @@ const axios = require('axios');
 const readline = require('readline');
 
 let WEBHOOK_URLS = [];
+let MESSAGES = ["EAGLE BABADIR"]; // Varsayılan mesaj
+
 try {
-    // Webhook bağlantılarını dışarıdan güvenli şekilde çekiyoruz
     WEBHOOK_URLS = require('./webhooks.json');
 } catch (error) {
-    console.error('HATA: "webhooks.json" dosyası bulunamadı!');
-    console.error('Lütfen "webhooks.example.json" dosyasının adını "webhooks.json" olarak değiştirip içine kendi Discord Webhook bağlantılarınızı ekleyin.');
+    console.error('HATA: "webhooks.json" bulunamadı!');
     process.exit(1);
+}
+
+try {
+    MESSAGES = require('./mesajlar.json');
+} catch (error) {
+    console.log('BİLGİ: "mesajlar.json" bulunamadı, varsayılan mesaj kullanılacak.');
 }
 
 const rl = readline.createInterface({
@@ -16,23 +22,45 @@ const rl = readline.createInterface({
     output: process.stdout
 });
 
-rl.question('Gönderilecek mesajı girin (Boş bırakırsanız "EAGLE BABADIR" gönderilir): ', (input) => {
-    const message = (input || "azrailin gazabı").toUpperCase();
+console.log(`🚀 Discord Spammer Başlatılıyor...`);
+console.log(`📡 Toplam Webhook: ${WEBHOOK_URLS.length}`);
+console.log(`💬 Toplam Mesaj Varyasyonu: ${MESSAGES.length}\n`);
 
-    console.log(`"${message}" mesajı ${WEBHOOK_URLS.length} farklı kanala saniyede 2 kez gönderilmeye başlanıyor... Durdurmak için CTRL+C yapın.`);
+let messageIndex = 0;
+let isSpamming = false;
 
-    setInterval(async () => {
+const sendBatch = async () => {
+    const currentMessage = MESSAGES[messageIndex];
+    messageIndex = (messageIndex + 1) % MESSAGES.length;
+
+    const promises = WEBHOOK_URLS.map(async (url) => {
         try {
-            const promises = WEBHOOK_URLS.map(url => axios.post(url, { content: message }));
-            await Promise.all(promises);
-            console.log(`[${new Date().toLocaleTimeString()}] ${WEBHOOK_URLS.length} kanala mesaj gönderildi: ${message}`);
+            await axios.post(url, { content: currentMessage });
+            console.log(`[${new Date().toLocaleTimeString()}] ✅ Gönderildi: ${currentMessage}`);
         } catch (error) {
-            console.error(`Hata oluştu: ${error.response ? error.response.status : error.message}`);
             if (error.response && error.response.status === 429) {
-                console.log("Rate limit'e takıldı, bekleniyor...");
+                const retryAfter = (error.response.headers['retry-after'] || 1) * 1000;
+                console.warn(`[!] Hız Sınırı (429): ${retryAfter}ms bekleniyor...`);
+                // Belirli webhook için kısa süreli duraklatma (opsiyonel geliştirilebilir)
+            } else {
+                console.error(`[X] Hata: ${error.message}`);
             }
         }
-    }, 1000); // 500ms = Saniyede 2 kez
+    });
 
-    rl.close(); // readline arayüzünü kapat, ama process devam etsin
-});
+    await Promise.all(promises);
+};
+
+console.log("Durdurmak için CTRL+C yapın.");
+isSpamming = true;
+
+const spamLoop = async () => {
+    while (isSpamming) {
+        await sendBatch();
+        // Rastgele ufak gecikme (Spam tespitini zorlaştırmak için 100ms - 500ms arası)
+        const delay = Math.floor(Math.random() * 400) + 100;
+        await new Promise(resolve => setTimeout(resolve, delay));
+    }
+};
+
+spamLoop();
