@@ -14,26 +14,40 @@ Belirlediğiniz Discord webhook adreslerine otomatik ve hızlı bir şekilde mes
 
 ## ⚙️ Ayarlar
 
-Projedeki güvenlik sebebiyle webhook adreslerinizi kod içine gömmüyoruz. 
-1. Ana dizinde bulunan `webhooks.example.json` dosyasının adını `webhooks.json` olarak değiştirin.
-2. `webhooks.json` dosyasını not defteri veya bir kod editörüyle açarak içine mesaj göndermek istediğiniz Discord Webhook URL'lerini ekleyin.
+### 1. Webhook Adresleri
+- `webhooks.example.json` dosyasını `webhooks.json` olarak kopyalayın ve içine Discord Webhook URL'lerinizi ekleyin.
+
+### 2. Mesaj Listesi (Yeni!)
+- `mesajlar.json` dosyasına dilediğiniz kadar farklı mesaj ekleyebilirsiniz. Bot, bu mesajları sırayla göndererek spam filtrelerini aşmanıza yardımcı olur.
+- Eğer bu dosya yoksa bot varsayılan mesajı kullanır.
 
 ```json
 [
-    "https://discord.com/api/webhooks/...",
-    "https://discord.com/api/webhooks/..."
+    "Mesaj 1",
+    "Mesaj 2",
+    "☠️☠️☠️"
 ]
 ```
 
+## 🚀 Özellikler
+- **Akıllı Rate Limit:** Discord'un hız sınırlarını (429) algılar ve otomatik bekler.
+- **Mesaj Rotasyonu:** Farklı mesajları sırayla göndererek tespit edilmeyi zorlaştırır.
+- **Async & Hızlı:** Node.js'in asenkron yapısı sayesinde maksimum verimlilik sağlar.
+
 ## 🚀 Kullanım
 
-Terminal üzerinden botu başlatmak için şu komutu girin:
-
+### 🖥️ 1. Web Dashboard (Önerilen - Premium Deneyim)
+Terminalde şu komutu çalıştırın:
 ```bash
-node spam.js
+npm start
 ```
+Bu komut yerel bir sunucu başlatacak ve tarayıcınızda otomatik olarak **Eagle Spammer Dashboard**'u açacaktır. Arayüz üzerinden webhook ve mesajlarınızı kolayca yönetebilirsiniz.
 
-Açılan ekranda Discord sunucunuza iletilmesini istediğiniz mesajı girip `Enter` tuşuna basın. İşlemi durdurmak istediğinizde terminal ekranında `CTRL + C` yapmanız yeterlidir.
+### ⌨️ 2. CLI Modu (Klasik)
+Sadece terminal üzerinden çalıştırmak isterseniz:
+```bash
+npm run cli
+```
 
 ## ⚠️ Yasal Uyarı
 Bu araç tamamen eğitim ve test amacıyla yazılmıştır. Kötüye kullanımından (Discord kullanım şartlarını ihlal eden saldırı veya spam davranışları) doğacak her türlü yasal sorumluluk kullanıcıya aittir.

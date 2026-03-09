@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Spammer | Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f172a;
+            --glass: rgba(30, 41, 59, 0.7);
+            --primary: #6366f1;
+            --accent: #818cf8;
+            --text: #f8fafc;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 99px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-stopped { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+        .status-running { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        h3 { margin-bottom: 16px; color: #94a3b8; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+
+        textarea {
+            width: 100%;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 12px;
+            color: white;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 120px;
+            transition: all 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+        }
+
+        .controls {
+            margin-top: 40px;
+            display: flex;
+            gap: 16px;
+        }
+
+        button {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-start:hover { transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(99, 102, 241, 0.4); }
+
+        .btn-stop {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .btn-stop:hover { background: var(--danger); color: white; }
+
+        .logs {
+            margin-top: 30px;
+            background: #000;
+            border-radius: 12px;
+            padding: 20px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.85rem;
+            color: #10b981;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .log-entry { margin-bottom: 4px; border-left: 2px solid #333; padding-left: 10px; }
+        .log-time { color: #64748b; margin-right: 8px; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Eagle Spammer</h1>
+            <div id="statusBadge" class="status-badge status-stopped">
+                <span class="dot">●</span> <span>DURDURULDU</span>
+            </div>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <h3>Webhook Adresleri (JSON)</h3>
+                <textarea id="webhookList" placeholder='["url1", "url2"]'></textarea>
+            </div>
+            <div class="card">
+                <h3>Mesaj Listesi (JSON)</h3>
+                <textarea id="messageList" placeholder='["Mesaj 1", "Mesaj 2"]'></textarea>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="startBtn" class="btn-start">İşlemi Başlat</button>
+            <button id="stopBtn" class="btn-stop">Durdur</button>
+        </div>
+
+        <div class="logs" id="logPanel">
+            <div class="log-entry">Eagle Spammer Dashboard Hazır.</div>
+        </div>
+    </div>
+
+    <script>
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const logPanel = document.getElementById('logPanel');
+        const statusBadge = document.getElementById('statusBadge');
+        
+        let ws;
+
+        function addLog(msg, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            const time = new Date().toLocaleTimeString();
+            entry.innerHTML = `<span class="log-time">[${time}]</span> ${msg}`;
+            logPanel.prepend(entry);
+        }
+
+        // Dashboard verilerini yükle
+        fetch('/api/config')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('webhookList').value = JSON.stringify(data.webhooks, null, 2);
+                document.getElementById('messageList').value = JSON.stringify(data.messages, null, 2);
+            });
+
+        startBtn.onclick = async () => {
+            const webhooks = JSON.parse(document.getElementById('webhookList').value);
+            const messages = JSON.parse(document.getElementById('messageList').value);
+
+            const res = await fetch('/api/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ webhooks, messages })
+            });
+
+            if (res.ok) {
+                statusBadge.className = 'status-badge status-running';
+                statusBadge.querySelector('span:last-child').innerText = 'ÇALIŞIYOR';
+                addLog('Spam işlemi başlatıldı!', 'success');
+            }
+        };
+
+        stopBtn.onclick = async () => {
+            const res = await fetch('/api/stop', { method: 'POST' });
+            if (res.ok) {
+                statusBadge.className = 'status-badge status-stopped';
+                statusBadge.querySelector('span:last-child').innerText = 'DURDURULDU';
+                addLog('İşlem durduruldu.');
+            }
+        };
+
+        // Gerçek zamanlı loglar için basit polling (Örnek amaçlı, SSE veya WS daha iyi olurdu ama basitlik için polling)
+        setInterval(async () => {
+            const res = await fetch('/api/logs');
+            const data = await res.json();
+            if (data.logs && data.logs.length > 0) {
+                data.logs.forEach(log => addLog(log));
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
