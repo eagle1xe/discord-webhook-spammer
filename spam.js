@@ -1,66 +1,64 @@
 const axios = require('axios');
 const readline = require('readline');
 
-let WEBHOOK_URLS = [];
-let MESSAGES = ["EAGLE BABADIR"]; // Varsayılan mesaj
-
-try {
-    WEBHOOK_URLS = require('./webhooks.json');
-} catch (error) {
-    console.error('HATA: "webhooks.json" bulunamadı!');
-    process.exit(1);
-}
-
-try {
-    MESSAGES = require('./mesajlar.json');
-} catch (error) {
-    console.log('BİLGİ: "mesajlar.json" bulunamadı, varsayılan mesaj kullanılacak.');
-}
+// ==========================================
+// AYARLAR - WEBHOOK ADRESLERINIZI BURAYA EKLEYIN
+// ==========================================
+const WEBHOOK_URLS = [
+    "https://discord.com/api/webhooks/BURAYA_WEBHOOK_LINKINI_YAZIN"
+];
+// ==========================================
 
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
 
-console.log(`🚀 Discord Spammer Başlatılıyor...`);
-console.log(`📡 Toplam Webhook: ${WEBHOOK_URLS.length}`);
-console.log(`💬 Toplam Mesaj Varyasyonu: ${MESSAGES.length}\n`);
+const askQuestion = (query) => new Promise((resolve) => rl.question(query, resolve));
 
-let messageIndex = 0;
-let isSpamming = false;
+async function startSpammer() {
+    console.log(`\n🚀 Eagle Terminal Spammer Başlatılıyor...`);
 
-const sendBatch = async () => {
-    const currentMessage = MESSAGES[messageIndex];
-    messageIndex = (messageIndex + 1) % MESSAGES.length;
+    if (WEBHOOK_URLS.length === 0 || !WEBHOOK_URLS[0].startsWith('http')) {
+        console.error('❌ HATA: Lütfen kodun içindeki WEBHOOK_URLS kısmına geçerli bir link ekleyin!');
+        process.exit(1);
+    }
 
-    const promises = WEBHOOK_URLS.map(async (url) => {
-        try {
-            await axios.post(url, { content: currentMessage });
-            console.log(`[${new Date().toLocaleTimeString()}] ✅ Gönderildi: ${currentMessage}`);
-        } catch (error) {
-            if (error.response && error.response.status === 429) {
-                const retryAfter = (error.response.headers['retry-after'] || 1) * 1000;
-                console.warn(`[!] Hız Sınırı (429): ${retryAfter}ms bekleniyor...`);
-                // Belirli webhook için kısa süreli duraklatma (opsiyonel geliştirilebilir)
-            } else {
-                console.error(`[X] Hata: ${error.message}`);
+    let userMessage = await askQuestion('❓ Ne yazılsın? (Boş bırakırsanız "EAGLE BABADIR" gönderilir): ');
+    
+    // Eğer cevap boşsa varsayılan mesajı ata
+    if (!userMessage.trim()) {
+        userMessage = "EAGLE BABADIR";
+    }
+
+    console.log(`\n📡 Hedef: ${WEBHOOK_URLS.length} Webhook`);
+    console.log(`💬 Mesaj: "${userMessage}"`);
+    console.log(`🛑 Durdurmak için CTRL+C yapın.\n`);
+
+    const sendBatch = async () => {
+        const promises = WEBHOOK_URLS.map(async (url) => {
+            try {
+                await axios.post(url, { content: userMessage });
+                console.log(`[${new Date().toLocaleTimeString()}] ✅ Gönderildi: ${userMessage}`);
+            } catch (error) {
+                if (error.response && error.response.status === 429) {
+                    const retryAfter = (error.response.headers['retry-after'] || 1) * 1000;
+                    console.warn(`[!] Hız Sınırı (429): ${retryAfter}ms bekleniyor...`);
+                } else {
+                    console.error(`[X] Hata: ${error.message}`);
+                }
             }
-        }
-    });
+        });
+        await Promise.all(promises);
+    };
 
-    await Promise.all(promises);
-};
-
-console.log("Durdurmak için CTRL+C yapın.");
-isSpamming = true;
-
-const spamLoop = async () => {
-    while (isSpamming) {
+    // Sonsuz döngü
+    while (true) {
         await sendBatch();
-        // Rastgele ufak gecikme (Spam tespitini zorlaştırmak için 100ms - 500ms arası)
+        // Rastgele 100ms - 500ms arası bekleme
         const delay = Math.floor(Math.random() * 400) + 100;
         await new Promise(resolve => setTimeout(resolve, delay));
     }
-};
+}
 
-spamLoop();
+startSpammer();
